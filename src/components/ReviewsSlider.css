@@ -1,0 +1,14 @@
+.reviews-section { padding: 100px 0; text-align: center; background: var(--color-bg-light); }
+.reviews-section .section-label, .reviews-section .section-title { display: block; }
+.reviews-track { position: relative; max-width: 640px; margin: 50px auto 30px; min-height: 160px; }
+.review-card {
+  position: absolute; inset: 0; opacity: 0; transform: translateX(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease; pointer-events: none;
+}
+.review-active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.review-stars { color: var(--color-brown); font-size: 1.1rem; margin-bottom: 16px; }
+.review-text { font-family: var(--font-title); font-size: 1.3rem; font-style: italic; line-height: 1.6; color: var(--color-text-dark); margin-bottom: 16px; }
+.review-name { font-size: 0.85rem; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.reviews-dots { display: flex; justify-content: center; gap: 10px; }
+.reviews-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.15); transition: var(--transition); }
+.reviews-dot-active { background: var(--color-brown); width: 22px; border-radius: 4px; }

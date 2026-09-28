@@ -1,0 +1,46 @@
+.image-upload-preview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  background: #eee;
+  border: 1px dashed rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-upload-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-upload-placeholder {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 10px;
+}
+
+.image-upload-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: var(--transition);
+  text-align: center;
+  padding: 10px;
+}
+
+.image-upload-preview:hover .image-upload-overlay {
+  opacity: 1;
+}

@@ -1,0 +1,22 @@
+.customize-page { padding: 90px 0 120px; min-height: 80vh; position: relative; }
+.customize-inner { display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; }
+.customize-intro p { color: var(--color-text-muted); line-height: 1.8; margin-top: 18px; max-width: 380px; }
+
+.customize-form { position: relative; padding: 36px; }
+.customize-form::before {
+  content: ""; position: absolute; top: -20px; right: -20px; width: 220px; height: 220px;
+  background-image: url("/images/patterns/pattern-tan.png"); background-size: cover; opacity: 0.1;
+  z-index: 0; pointer-events: none; border-radius: 4px;
+}
+.customize-form > * { position: relative; z-index: 1; }
+
+.customize-field { display: block; margin-bottom: 20px; }
+.customize-field span { display: block; font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 8px; }
+.customize-field textarea { width: 100%; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15); color: var(--color-white); font-family: inherit; font-size: 0.92rem; }
+.customize-upload { display: block; padding: 16px; border: 1px dashed rgba(255,255,255,0.25); color: var(--color-text-muted); font-size: 0.88rem; text-align: center; cursor: pointer; margin-bottom: 28px; transition: var(--transition); }
+.customize-upload:hover { border-color: var(--color-brown-light); }
+.customize-channel-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+.customize-ig-btn { border-color: var(--color-white); color: var(--color-white); }
+.customize-ig-btn:hover { background: var(--color-white); color: var(--color-black); }
+.customize-note { margin-top: 18px; font-size: 0.78rem; color: var(--color-text-muted); opacity: 0.7; }
+@media (max-width: 800px) { .customize-inner { grid-template-columns: 1fr; } }

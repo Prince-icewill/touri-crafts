@@ -1,0 +1,49 @@
+:root {
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-brown: #a07e5b;
+  --color-brown-light: #c7a985;
+  --color-brown-dark: #6f5539;
+
+  --color-bg-dark: #0a0908;
+  --color-bg-darker: #050403;
+  --color-bg-light: #faf7f2;
+  --color-text-light: #f5f0e8;
+  --color-text-dark: #1a1512;
+  --color-text-muted: #b8ac9c;
+
+  --font-title: 'Playfair Display', 'Georgia', serif;
+  --font-script: 'Dancing Script', cursive;
+  --font-body: 'Jost', 'Helvetica Neue', sans-serif;
+
+  --max-width: 1240px;
+  --radius: 2px;
+  --transition: 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--color-bg-light); color: var(--color-text-dark); overflow-x: hidden; }
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+ul { list-style: none; }
+img { max-width: 100%; display: block; }
+
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+.section-label { font-family: var(--font-script); font-size: 1.4rem; color: var(--color-brown); margin-bottom: 4px; display: block; }
+.section-title { font-family: var(--font-title); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 500; margin-bottom: 12px; }
+
+.btn {
+  display: inline-block; padding: 14px 32px; font-size: 0.85rem;
+  letter-spacing: 1.5px; text-transform: uppercase; border: 1px solid var(--color-black);
+  background: var(--color-black); color: var(--color-white); transition: var(--transition);
+}
+.btn:hover { background: transparent; color: var(--color-black); }
+.btn-outline { background: transparent; color: var(--color-black); }
+.btn-outline:hover { background: var(--color-black); color: var(--color-white); }
+.btn-light { border-color: var(--color-white); background: var(--color-white); color: var(--color-black); }
+.btn-light:hover { background: transparent; color: var(--color-white); }
+
+.dark-section { background: var(--color-bg-dark); color: var(--color-text-light); }
+.dark-section .section-title { color: var(--color-white); }

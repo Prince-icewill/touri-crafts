@@ -1,0 +1,36 @@
+// ─────────────────────────────────────────────────────────────
+// FIRESTORE SECURITY RULES — TOURI CRAFTS
+// ─────────────────────────────────────────────────────────────
+// Copy everything below and paste it into:
+// Firebase Console > Firestore Database > Rules tab > Publish
+//
+// What this does:
+// - Anyone visiting the site can READ products/services/images
+//   (so the shop, homepage, etc. all work normally for customers)
+// - Only someone signed in with the admin account (created in
+//   Authentication > Users) can WRITE (add, edit, delete)
+// - This replaces "test mode", which allows ANYONE to write and
+//   auto-locks everything after 30 days
+// ─────────────────────────────────────────────────────────────
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /siteContent/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
