@@ -58,6 +58,16 @@
 .admin-site-image-uploader { max-width: 200px; }
 .admin-saving-tag { font-size: 0.78rem; color: var(--color-brown-dark); }
 
+.admin-orders { display: flex; flex-direction: column; gap: 16px; }
+.admin-order-card { border: 1px solid rgba(0,0,0,0.1); padding: 18px 20px; }
+.admin-order-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.admin-order-customer { font-weight: 600; }
+.admin-order-meta { font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: 4px; }
+.admin-order-total { font-family: var(--font-title); font-size: 1.15rem; color: var(--color-brown-dark); }
+.admin-order-items { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.admin-order-item-pill { background: var(--color-bg-light); border: 1px solid rgba(0,0,0,0.08); padding: 4px 10px; font-size: 0.78rem; border-radius: 20px; }
+.admin-order-ref { font-family: monospace; font-size: 0.72rem; color: var(--color-text-muted); opacity: 0.7; }
+
 @media (max-width: 700px) {
   .admin-form-grid { grid-template-columns: 1fr; }
   .admin-item { grid-template-columns: 50px 1fr; grid-template-areas: "img info" "edit edit" "sold sold" "delete delete"; }

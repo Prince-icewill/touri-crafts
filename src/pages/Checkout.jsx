@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { PICKUP_LOCATIONS } from "../data/products";
 import "./Checkout.css";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/config";
 
 const PAYSTACK_PUBLIC_KEY = "pk_test_REPLACE_WITH_CLIENT_PUBLIC_KEY";
 const TIP_OPTIONS = [0, 10, 15, 20];
@@ -13,6 +15,9 @@ export default function Checkout() {
   const [tipPercent, setTipPercent] = useState(0);
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "", address: "" });
   const [paying, setPaying] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [orderConfirmed, setOrderConfirmed] = useState(null);
+  const [paymentError, setPaymentError] = useState("");
 
   const tipAmount = Math.round((total * tipPercent) / 100);
   const grandTotal = total + tipAmount;
@@ -20,6 +25,54 @@ export default function Checkout() {
   function handleChange(e) {
     setCustomer((c) => ({ ...c, [e.target.name]: e.target.value }));
   }
+
+  async function verifyAndSaveOrder(reference) {
+  setVerifying(true);
+  setPaymentError("");
+
+  try {
+    const res = await fetch("/api/verify-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reference }),
+    });
+    const result = await res.json();
+
+    if (!result.verified) {
+      setPaymentError(
+        "We couldn't confirm this payment. If money left your account, please contact us on WhatsApp with your reference: " + reference
+      );
+      setVerifying(false);
+      return;
+    }
+
+    const orderData = {
+      reference,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerPhone: customer.phone,
+      deliveryType,
+      deliveryLocation: deliveryType === "pickup" ? pickupLocation : customer.address,
+      items: items.map((i) => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      subtotal: total,
+      tipPercent,
+      tipAmount,
+      total: grandTotal,
+      status: "paid",
+      createdAt: serverTimestamp(),
+    };
+
+    await addDoc(collection(db, "orders"), orderData);
+    setOrderConfirmed({ reference, total: grandTotal });
+    clearCart();
+  } catch (err) {
+    console.error(err);
+    setPaymentError(
+      "Payment verification failed to reach our server. If money left your account, please contact us on WhatsApp with your reference: " + reference
+    );
+  }
+  setVerifying(false);
+}
 
   function payWithPaystack() {
     if (!customer.email || !customer.name || !customer.phone) {
@@ -52,10 +105,9 @@ export default function Checkout() {
           { display_name: "Items", variable_name: "items", value: items.map((i) => `${i.name} x${i.qty}`).join(", ") },
         ],
       },
-      callback: function (response) {
-        setPaying(false);
-        alert(`Payment reference: ${response.reference}\n\nThis reference must be verified server-side before the order is confirmed.`);
-        clearCart();
+    callback: function (response) {
+     setPaying(false);
+     verifyAndSaveOrder(response.reference);
       },
       onClose: function () {
         setPaying(false);
@@ -65,6 +117,17 @@ export default function Checkout() {
     handler.openIframe();
   }
 
+  if (orderConfirmed) {
+  return (
+    <div className="container checkout-empty">
+      <h2 className="order-success-title">Order Confirmed ✓</h2>
+      <p>Thank you — your payment of ₦{orderConfirmed.total.toLocaleString()} was successful.</p>
+      <p className="order-success-ref">Reference: {orderConfirmed.reference}</p>
+      <p>We'll be in touch shortly to arrange {deliveryType === "pickup" ? "pickup" : "delivery"}.</p>
+    </div>
+  );
+}
+
   if (items.length === 0) {
     return <div className="container checkout-empty"><p>Your cart is empty.</p></div>;
   }
@@ -72,6 +135,8 @@ export default function Checkout() {
   return (
     <div className="checkout-page container">
       <h1 className="section-title">Checkout</h1>
+
+      {paymentError && <div className="checkout-payment-error">{paymentError}</div>}
 
       <div className="checkout-grid">
         <div className="checkout-main">
@@ -135,7 +200,9 @@ export default function Checkout() {
           {tipAmount > 0 && <div className="summary-row"><span>Tip ({tipPercent}%)</span><span>₦{tipAmount.toLocaleString()}</span></div>}
           <div className="summary-row summary-total"><span>Total</span><span>₦{grandTotal.toLocaleString()}</span></div>
 
-          <button className="btn checkout-pay-btn" onClick={payWithPaystack} disabled={paying}>{paying ? "Processing..." : "Pay with Paystack"}</button>
+          <button className="btn checkout-pay-btn" onClick={payWithPaystack} disabled={paying ||        verifying}>
+           {paying ? "Processing..." : verifying ? "Confirming payment..." : "Pay with Paystack"}
+          </button>
         </div>
       </div>
     </div>

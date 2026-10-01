@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase/config";
 import { useAdmin } from "../context/AdminContext";
 import { CATEGORIES } from "../data/products";
 import ImageUpload from "../components/ImageUpload";
@@ -45,9 +47,7 @@ export default function Admin() {
           {loggingIn ? "Logging in..." : "Log In"}
         </button>
         {error && <p className="admin-error">{error}</p>}
-        <p className="admin-login-note">
-          This account is created in Firebase Console under Authentication &gt; Users — see FIRESTORE_RULES.txt and src/firebase/config.js for setup.
-        </p>
+        
       </div>
     );
   }
@@ -72,11 +72,13 @@ function AdminDashboard({ onLogout }) {
       <div className="admin-tabs">
         <button className={tab === "products" ? "active" : ""} onClick={() => setTab("products")}>Products</button>
         <button className={tab === "services" ? "active" : ""} onClick={() => setTab("services")}>Services</button>
+        <button className={tab === "orders" ? "active" : ""} onClick={() => setTab("orders")}>Orders</button>
         <button className={tab === "site" ? "active" : ""} onClick={() => setTab("site")}>Site Images</button>
       </div>
 
       {tab === "products" && <ProductsTab />}
       {tab === "services" && <ServicesTab />}
+      {tab === "orders" && <OrdersTab />}
       {tab === "site" && <SiteImagesTab />}
     </div>
   );
@@ -306,6 +308,55 @@ function SiteImagesTab() {
             <ImageUpload value={getSiteImage(spot.key, "")} onChange={(b64) => handleUpload(spot.key, b64)} label="Choose image" />
           </div>
           {saving === spot.key && <span className="admin-saving-tag">Saving...</span>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OrdersTab() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setOrders(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+      },
+      (err) => {
+        console.warn("Couldn't load orders — check Firestore rules are published.", err);
+        setLoading(false);
+      }
+    );
+    return () => unsub();
+  }, []);
+
+  if (loading) return <p className="admin-tab-note">Loading orders...</p>;
+  if (orders.length === 0) return <p className="admin-tab-note">No orders yet — they'll appear here the moment a customer pays.</p>;
+
+  return (
+    <div className="admin-orders">
+      {orders.map((o) => (
+        <div key={o.id} className="admin-order-card">
+          <div className="admin-order-header">
+            <div>
+              <p className="admin-order-customer">{o.customerName}</p>
+              <p className="admin-order-meta">{o.customerPhone} · {o.customerEmail}</p>
+            </div>
+            <p className="admin-order-total">₦{o.total?.toLocaleString()}</p>
+          </div>
+          <p className="admin-order-meta">
+            {o.deliveryType === "pickup" ? "Pickup: " : "Delivery: "}{o.deliveryLocation}
+          </p>
+          <div className="admin-order-items">
+            {o.items?.map((it, i) => (
+              <span key={i} className="admin-order-item-pill">{it.name} ×{it.qty}</span>
+            ))}
+          </div>
+          <p className="admin-order-ref">Ref: {o.reference}</p>
         </div>
       ))}
     </div>
