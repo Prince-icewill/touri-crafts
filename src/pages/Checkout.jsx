@@ -5,10 +5,10 @@ import "./Checkout.css";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-const PAYSTACK_PUBLIC_KEY = "pk_test_REPLACE_WITH_CLIENT_PUBLIC_KEY";
+const PAYSTACK_PUBLIC_KEY = "pk_test_4cc503637713988f639de5bdadd0793e6629a44e";
 const TIP_OPTIONS = [0, 10, 15, 20];
 
-export default function Checkout() {
+export default function Checkout() { 
   const { items, total, updateQty, removeItem, clearCart } = useCart();
   const [deliveryType, setDeliveryType] = useState("pickup");
   const [pickupLocation, setPickupLocation] = useState(PICKUP_LOCATIONS[0].id);
