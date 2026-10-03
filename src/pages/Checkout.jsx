@@ -5,7 +5,7 @@ import "./Checkout.css";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-const PAYSTACK_PUBLIC_KEY = "pk_test_4cc503637713988f639de5bdadd0793e6629a44e";
+const PAYSTACK_PUBLIC_KEY = "pk_live_7173ae2cb338ac2d4864641c5bafd2b2016e3d8b";
 const TIP_OPTIONS = [0, 10, 15, 20];
 
 export default function Checkout() { 
