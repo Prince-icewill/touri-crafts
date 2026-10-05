@@ -1,9 +1,17 @@
 .product-detail { padding: 60px 0 100px; }
 .product-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
-.product-detail-gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.product-main-image { width: 100%; aspect-ratio: 1; object-fit: cover; }
 .product-thumb-row { display: flex; gap: 10px; margin-top: 12px; }
-.product-thumb { width: 72px; height: 72px; object-fit: cover; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; opacity: 0.7; transition: var(--transition); }
-.product-thumb:hover { opacity: 1; }
+.product-thumb { width: 72px; height: 72px; object-fit: cover; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; opacity: 0.6; transition: var(--transition); }
+.product-thumb:hover { opacity: 0.9; }
+.product-thumb-active { opacity: 1; border-color: var(--color-brown); border-width: 2px; }
+
+.product-option-group { margin: 22px 0; }
+.product-option-label { display: block; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; color: var(--color-text-muted); margin-bottom: 10px; }
+.product-option-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.product-option-btn { padding: 10px 16px; border: 1px solid rgba(0,0,0,0.2); font-size: 0.85rem; background: var(--color-bg-light); transition: var(--transition); }
+.product-option-btn:hover { border-color: var(--color-brown); }
+.product-option-active { background: var(--color-black); color: var(--color-white); border-color: var(--color-black); }
 .product-detail-info h1 { font-family: var(--font-title); font-size: 2.2rem; font-weight: 500; margin-bottom: 12px; }
 .product-detail-price { font-size: 1.3rem; color: var(--color-brown-dark); margin-bottom: 24px; }
 .product-detail-desc { line-height: 1.7; color: var(--color-text-dark); margin-bottom: 32px; }
@@ -11,6 +19,10 @@
 .customize-block { margin-top: 50px; padding-top: 36px; border-top: 1px solid rgba(0,0,0,0.1); }
 .customize-block h4 { font-family: var(--font-title); font-size: 1.1rem; margin-bottom: 10px; }
 .customize-block p { color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 16px; line-height: 1.6; }
+.custom-description-input {
+  width: 100%; padding: 12px 14px; border: 1px solid rgba(0,0,0,0.15);
+  font-family: inherit; font-size: 0.88rem; margin-bottom: 16px; resize: vertical;
+}
 .custom-upload-label {
   display: inline-block; padding: 12px 20px; border: 1px dashed rgba(0,0,0,0.3);
   font-size: 0.85rem; cursor: pointer; margin-bottom: 16px; transition: var(--transition);

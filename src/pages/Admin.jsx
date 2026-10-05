@@ -85,7 +85,16 @@ function AdminDashboard({ onLogout }) {
 }
 
 function emptyForm() {
-  return { id: null, name: "", category: CATEGORIES[1]?.id || "boards", price: "", description: "", images: [] };
+  return {
+    id: null,
+    name: "",
+    category: CATEGORIES[1]?.id || "boards",
+    price: "",
+    description: "",
+    images: [],
+    sizes: [],
+    colors: [],
+  };
 }
 
 function ProductsTab() {
@@ -105,8 +114,42 @@ function ProductsTab() {
       price: product.price,
       description: product.description,
       images: product.images || [],
+      sizes: product.sizes || [],
+      colors: product.colors || [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setForm(emptyForm());
+  }
+
+  function addSize() {
+    setForm((f) => ({ ...f, sizes: [...f.sizes, { label: "", price: "" }] }));
+  }
+  function updateSize(index, field, value) {
+    setForm((f) => {
+      const sizes = [...f.sizes];
+      sizes[index] = { ...sizes[index], [field]: value };
+      return { ...f, sizes };
+    });
+  }
+  function removeSize(index) {
+    setForm((f) => ({ ...f, sizes: f.sizes.filter((_, i) => i !== index) }));
+  }
+
+  function addColor() {
+    setForm((f) => ({ ...f, colors: [...f.colors, ""] }));
+  }
+  function updateColor(index, value) {
+    setForm((f) => {
+      const colors = [...f.colors];
+      colors[index] = value;
+      return { ...f, colors };
+    });
+  }
+  function removeColor(index) {
+    setForm((f) => ({ ...f, colors: f.colors.filter((_, i) => i !== index) }));
   }
 
   function cancelEdit() {
@@ -139,6 +182,11 @@ function ProductsTab() {
       return;
     }
 
+       const cleanSizes = form.sizes
+      .filter((s) => s.label && s.price)
+      .map((s) => ({ label: s.label, price: Number(s.price) }));
+    const cleanColors = form.colors.filter((c) => c.trim());
+
     setSaving(true);
     try {
       if (form.id) {
@@ -148,6 +196,8 @@ function ProductsTab() {
           price: Number(form.price),
           description: form.description,
           images: cleanImages,
+          sizes: cleanSizes,
+          colors: cleanColors,
         });
       } else {
         const id = form.name.toLowerCase().trim().replace(/\s+/g, "-") + "-" + Date.now();
@@ -158,6 +208,8 @@ function ProductsTab() {
           price: Number(form.price),
           description: form.description || "Handcrafted with care.",
           images: cleanImages,
+          sizes: cleanSizes,
+          colors: cleanColors,
           soldOut: false,
         });
       }
@@ -192,7 +244,30 @@ function ProductsTab() {
               <button type="button" className="admin-remove-image" onClick={() => removeImageSlot(i)}>Remove</button>
             </div>
           ))}
-          <button type="button" className="admin-add-image" onClick={addImageSlot}>+ Add Photo</button>
+                    <button type="button" className="admin-add-image" onClick={addImageSlot}>+ Add Photo</button>
+        </div>
+
+        <div className="admin-variant-section">
+          <div className="admin-images-label">Sizes (optional — each size can have its own price)</div>
+          {form.sizes.map((s, i) => (
+            <div key={i} className="admin-variant-row">
+              <input placeholder="e.g. Small" value={s.label} onChange={(e) => updateSize(i, "label", e.target.value)} />
+              <input type="number" placeholder="Price (₦)" value={s.price} onChange={(e) => updateSize(i, "price", e.target.value)} />
+              <button type="button" className="admin-remove-image" onClick={() => removeSize(i)}>Remove</button>
+            </div>
+          ))}
+          <button type="button" className="admin-add-variant" onClick={addSize}>+ Add Size</button>
+        </div>
+
+        <div className="admin-variant-section">
+          <div className="admin-images-label">Styles / Colors (optional — e.g. Tribal, Natural, All Charred)</div>
+          {form.colors.map((c, i) => (
+            <div key={i} className="admin-variant-row">
+              <input placeholder="e.g. Tribal" value={c} onChange={(e) => updateColor(i, e.target.value)} />
+              <button type="button" className="admin-remove-image" onClick={() => removeColor(i)}>Remove</button>
+            </div>
+          ))}
+          <button type="button" className="admin-add-variant" onClick={addColor}>+ Add Style/Color</button>
         </div>
 
         <div className="admin-form-actions">

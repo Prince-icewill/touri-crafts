@@ -12,6 +12,13 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [customFile, setCustomFile] = useState(null);
+  const [customDescription, setCustomDescription] = useState("");
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
+  const hasColors = Array.isArray(product?.colors) && product.colors.length > 0;
+  const [selectedSize, setSelectedSize] = useState(hasSizes ? product.sizes[0] : null);
+  const [selectedColor, setSelectedColor] = useState(hasColors ? product.colors[0] : null);
 
   if (!product) {
     return (
@@ -22,8 +29,24 @@ export default function ProductDetail() {
     );
   }
 
+  const displayPrice = hasSizes ? selectedSize.price : product.price;
+  const images = product.images && product.images.length > 0 ? product.images : [];
+
   function handleAddToCart() {
-    addItem(product);
+    const variantParts = [];
+    if (hasSizes) variantParts.push(selectedSize.label);
+    if (hasColors) variantParts.push(selectedColor);
+    const variantLabel = variantParts.length > 0 ? ` (${variantParts.join(", ")})` : "";
+
+    addItem({
+      id: product.id + (variantParts.length > 0 ? "-" + variantParts.join("-").toLowerCase() : ""),
+      baseId: product.id,
+      name: product.name + variantLabel,
+      price: displayPrice,
+      images: product.images,
+      size: hasSizes ? selectedSize.label : null,
+      color: hasColors ? selectedColor : null,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   }
@@ -33,11 +56,15 @@ export default function ProductDetail() {
     if (file) setCustomFile(file);
   }
 
-  function sendCustomRequest() {
-    const msg = encodeURIComponent(
-      `Hi Touri Crafts, I'd like to customize the "${product.name}". I have a reference image I'd like to share.`
-    );
-    window.open(`${SOCIALS.whatsapp}?text=${msg}`, "_blank");
+    function sendCustomRequest() {
+    let text = `Hi Touri Crafts, I'd like to customize the "${product.name}".`;
+    if (customDescription.trim()) {
+      text += ` ${customDescription.trim()}`;
+    }
+    if (customFile) {
+      text += " I have a reference image I'd like to share.";
+    }
+    window.open(`${SOCIALS.whatsapp}?text=${encodeURIComponent(text)}`, "_blank");
   }
 
   return (
@@ -45,21 +72,61 @@ export default function ProductDetail() {
       <div className="container">
         <div className="product-detail-grid">
           <div className="product-detail-gallery">
-            <img src={product.images[0]} alt={product.name} />
-            <div className="product-thumb-row">
-              {(product.images.length > 1 ? product.images : [product.images[0], product.images[0], product.images[0]]).map((img, i) => (
-                <img key={i} src={img} alt={`${product.name} view ${i + 1}`} className="product-thumb" />
-              ))}
-            </div>
+            <img src={images[activeImageIndex]} alt={product.name} className="product-main-image" />
+
+            {images.length > 1 && (
+              <div className="product-thumb-row">
+                {images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt={`${product.name} view ${i + 1}`}
+                    className={`product-thumb ${i === activeImageIndex ? "product-thumb-active" : ""}`}
+                    onClick={() => setActiveImageIndex(i)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="product-detail-info">
             <h1>{product.name}</h1>
-            <p className="product-detail-price">
-              ₦{product.price.toLocaleString()}
-              {product.priceMax && ` – ₦${product.priceMax.toLocaleString()}`}
-            </p>
+            <p className="product-detail-price">₦{displayPrice.toLocaleString()}</p>
             <p className="product-detail-desc">{product.description}</p>
+
+            {hasSizes && (
+              <div className="product-option-group">
+                <span className="product-option-label">Size</span>
+                <div className="product-option-buttons">
+                  {product.sizes.map((s) => (
+                    <button
+                      key={s.label}
+                      className={`product-option-btn ${selectedSize.label === s.label ? "product-option-active" : ""}`}
+                      onClick={() => setSelectedSize(s)}
+                    >
+                      {s.label} — ₦{s.price.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasColors && (
+              <div className="product-option-group">
+                <span className="product-option-label">Style</span>
+                <div className="product-option-buttons">
+                  {product.colors.map((c) => (
+                    <button
+                      key={c}
+                      className={`product-option-btn ${selectedColor === c ? "product-option-active" : ""}`}
+                      onClick={() => setSelectedColor(c)}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {product.soldOut ? (
               <p className="sold-out-label">This piece is currently sold out</p>
@@ -67,15 +134,28 @@ export default function ProductDetail() {
               <button className="btn" onClick={handleAddToCart}>{added ? "Added ✓" : "Add to Cart"}</button>
             )}
 
-            <div className="customize-block">
+                        <div className="customize-block">
               <h4>Want it customized?</h4>
-              <p>Upload a reference image of what you'd like changed or added, and we'll reach out to discuss it with you directly.</p>
+              <p>Tell us what you'd like changed or added, and/or upload a reference image — we'll reach out to discuss it with you directly.</p>
+              <textarea
+                className="custom-description-input"
+                placeholder="Describe what you'd like, e.g. a specific size, engraving, or finish..."
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                rows={3}
+              />
               <label className="custom-upload-label">
-                {customFile ? customFile.name : "Choose reference image"}
+                {customFile ? customFile.name : "Choose reference image (optional)"}
                 <input type="file" accept="image/*" onChange={handleCustomFile} hidden />
               </label>
-              <button className="btn-outline btn" onClick={sendCustomRequest} disabled={!customFile}>Send Customization Request</button>
-              <p className="customize-note">We'll open WhatsApp for you — please attach the image there to complete your request.</p>
+              <button
+                className="btn-outline btn"
+                onClick={sendCustomRequest}
+                disabled={!customFile && !customDescription.trim()}
+              >
+                Send Customization Request
+              </button>
+              <p className="customize-note">We'll open WhatsApp for you — if you added a reference image, please attach it there to complete your request.</p>
             </div>
           </div>
         </div>
