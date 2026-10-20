@@ -17,8 +17,12 @@ export default function ProductDetail() {
 
   const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
   const hasColors = Array.isArray(product?.colors) && product.colors.length > 0;
+  // Handles both old plain-string style entries and the new {label, extraPrice} shape
+  const normalizedColors = hasColors
+    ? product.colors.map((c) => (typeof c === "string" ? { label: c, extraPrice: 0 } : c))
+    : [];
   const [selectedSize, setSelectedSize] = useState(hasSizes ? product.sizes[0] : null);
-  const [selectedColor, setSelectedColor] = useState(hasColors ? product.colors[0] : null);
+  const [selectedColor, setSelectedColor] = useState(hasColors ? normalizedColors[0] : null);
 
   if (!product) {
     return (
@@ -29,13 +33,15 @@ export default function ProductDetail() {
     );
   }
 
-  const displayPrice = hasSizes ? selectedSize.price : product.price;
+  const basePrice = hasSizes ? selectedSize.price : product.price;
+  const extraPrice = hasColors && selectedColor?.extraPrice ? selectedColor.extraPrice : 0;
+  const displayPrice = basePrice + extraPrice;
   const images = product.images && product.images.length > 0 ? product.images : [];
 
   function handleAddToCart() {
     const variantParts = [];
     if (hasSizes) variantParts.push(selectedSize.label);
-    if (hasColors) variantParts.push(selectedColor);
+    if (hasColors) variantParts.push(selectedColor.label);
     const variantLabel = variantParts.length > 0 ? ` (${variantParts.join(", ")})` : "";
 
     addItem({
@@ -45,7 +51,7 @@ export default function ProductDetail() {
       price: displayPrice,
       images: product.images,
       size: hasSizes ? selectedSize.label : null,
-      color: hasColors ? selectedColor : null,
+      color: hasColors ? selectedColor.label : null,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -56,7 +62,7 @@ export default function ProductDetail() {
     if (file) setCustomFile(file);
   }
 
-    function sendCustomRequest() {
+  function sendCustomRequest() {
     let text = `Hi Touri Crafts, I'd like to customize the "${product.name}".`;
     if (customDescription.trim()) {
       text += ` ${customDescription.trim()}`;
@@ -91,7 +97,12 @@ export default function ProductDetail() {
 
           <div className="product-detail-info">
             <h1>{product.name}</h1>
-            <p className="product-detail-price">₦{displayPrice.toLocaleString()}</p>
+            <p className="product-detail-price">
+              ₦{displayPrice.toLocaleString()}
+              {extraPrice > 0 && (
+                <span className="product-price-breakdown"> (incl. {selectedColor.label} +₦{extraPrice.toLocaleString()})</span>
+              )}
+            </p>
             <p className="product-detail-desc">{product.description}</p>
 
             {hasSizes && (
@@ -115,13 +126,13 @@ export default function ProductDetail() {
               <div className="product-option-group">
                 <span className="product-option-label">Style</span>
                 <div className="product-option-buttons">
-                  {product.colors.map((c) => (
+                  {normalizedColors.map((c) => (
                     <button
-                      key={c}
-                      className={`product-option-btn ${selectedColor === c ? "product-option-active" : ""}`}
+                      key={c.label}
+                      className={`product-option-btn ${selectedColor?.label === c.label ? "product-option-active" : ""}`}
                       onClick={() => setSelectedColor(c)}
                     >
-                      {c}
+                      {c.label}{c.extraPrice > 0 ? ` (+₦${c.extraPrice.toLocaleString()})` : ""}
                     </button>
                   ))}
                 </div>
@@ -134,7 +145,7 @@ export default function ProductDetail() {
               <button className="btn" onClick={handleAddToCart}>{added ? "Added ✓" : "Add to Cart"}</button>
             )}
 
-                        <div className="customize-block">
+            <div className="customize-block">
               <h4>Want it customized?</h4>
               <p>Tell us what you'd like changed or added, and/or upload a reference image — we'll reach out to discuss it with you directly.</p>
               <textarea

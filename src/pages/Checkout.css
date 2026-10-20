@@ -33,6 +33,7 @@
 .checkout-pay-btn:disabled { opacity: 0.6; }
 .order-success-title { font-family: var(--font-title); font-size: 1.8rem; color: var(--color-text-dark); margin-bottom: 16px; }
 .order-success-ref { font-family: monospace; font-size: 0.85rem; color: var(--color-brown-dark); margin: 10px 0; }
+.order-success-highlight { font-weight: 600; color: var(--color-brown-dark); margin: 14px 0; }
 .checkout-payment-error {
   background: #fdecea; border: 1px solid #a33; color: #a33; padding: 14px 18px;
   border-radius: 4px; font-size: 0.88rem; margin-bottom: 24px; line-height: 1.5;

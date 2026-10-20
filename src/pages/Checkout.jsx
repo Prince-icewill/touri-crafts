@@ -118,15 +118,21 @@ export default function Checkout() {
   }
 
   if (orderConfirmed) {
-  return (
-    <div className="container checkout-empty">
-      <h2 className="order-success-title">Order Confirmed ✓</h2>
-      <p>Thank you — your payment of ₦{orderConfirmed.total.toLocaleString()} was successful.</p>
-      <p className="order-success-ref">Reference: {orderConfirmed.reference}</p>
-      <p>We'll be in touch shortly to arrange {deliveryType === "pickup" ? "pickup" : "delivery"}.</p>
-    </div>
-  );
-}
+    return (
+      <div className="container checkout-empty">
+        <h2 className="order-success-title">Thank You — Order Confirmed ✓</h2>
+        <p>Your payment of ₦{orderConfirmed.total.toLocaleString()} was received successfully.</p>
+        <p className="order-success-ref">Reference: {orderConfirmed.reference}</p>
+        <p className="order-success-highlight">
+          Your order is now being processed.{" "}
+          {deliveryType === "pickup"
+            ? "We'll reach out shortly to arrange a pickup time."
+            : "Delivery typically takes 10–12 working days."}
+        </p>
+        <p>A payment receipt has also been sent to your email. If you have any questions, feel free to reach us on WhatsApp.</p>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return <div className="container checkout-empty"><p>Your cart is empty.</p></div>;

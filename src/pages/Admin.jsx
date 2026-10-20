@@ -47,7 +47,6 @@ export default function Admin() {
           {loggingIn ? "Logging in..." : "Log In"}
         </button>
         {error && <p className="admin-error">{error}</p>}
-        
       </div>
     );
   }
@@ -115,7 +114,7 @@ function ProductsTab() {
       description: product.description,
       images: product.images || [],
       sizes: product.sizes || [],
-      colors: product.colors || [],
+      colors: (product.colors || []).map((c) => (typeof c === "string" ? { label: c, extraPrice: "" } : c)),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -139,21 +138,17 @@ function ProductsTab() {
   }
 
   function addColor() {
-    setForm((f) => ({ ...f, colors: [...f.colors, ""] }));
+    setForm((f) => ({ ...f, colors: [...f.colors, { label: "", extraPrice: "" }] }));
   }
-  function updateColor(index, value) {
+  function updateColor(index, field, value) {
     setForm((f) => {
       const colors = [...f.colors];
-      colors[index] = value;
+      colors[index] = { ...colors[index], [field]: value };
       return { ...f, colors };
     });
   }
   function removeColor(index) {
     setForm((f) => ({ ...f, colors: f.colors.filter((_, i) => i !== index) }));
-  }
-
-  function cancelEdit() {
-    setForm(emptyForm());
   }
 
   function updateImageAt(index, base64) {
@@ -182,10 +177,12 @@ function ProductsTab() {
       return;
     }
 
-       const cleanSizes = form.sizes
+    const cleanSizes = form.sizes
       .filter((s) => s.label && s.price)
       .map((s) => ({ label: s.label, price: Number(s.price) }));
-    const cleanColors = form.colors.filter((c) => c.trim());
+    const cleanColors = form.colors
+      .filter((c) => c.label && c.label.trim())
+      .map((c) => ({ label: c.label.trim(), extraPrice: Number(c.extraPrice || 0) }));
 
     setSaving(true);
     try {
@@ -244,7 +241,7 @@ function ProductsTab() {
               <button type="button" className="admin-remove-image" onClick={() => removeImageSlot(i)}>Remove</button>
             </div>
           ))}
-                    <button type="button" className="admin-add-image" onClick={addImageSlot}>+ Add Photo</button>
+          <button type="button" className="admin-add-image" onClick={addImageSlot}>+ Add Photo</button>
         </div>
 
         <div className="admin-variant-section">
@@ -260,14 +257,15 @@ function ProductsTab() {
         </div>
 
         <div className="admin-variant-section">
-          <div className="admin-images-label">Styles / Colors (optional — e.g. Tribal, Natural, All Charred)</div>
+          <div className="admin-images-label">Styles / Add-ons (optional — e.g. Tribal ₦0, Engraving ₦10,000)</div>
           {form.colors.map((c, i) => (
             <div key={i} className="admin-variant-row">
-              <input placeholder="e.g. Tribal" value={c} onChange={(e) => updateColor(i, e.target.value)} />
+              <input placeholder="e.g. Tribal or Engraving" value={c.label} onChange={(e) => updateColor(i, "label", e.target.value)} />
+              <input type="number" placeholder="Extra charge (₦) — 0 if none" value={c.extraPrice} onChange={(e) => updateColor(i, "extraPrice", e.target.value)} />
               <button type="button" className="admin-remove-image" onClick={() => removeColor(i)}>Remove</button>
             </div>
           ))}
-          <button type="button" className="admin-add-variant" onClick={addColor}>+ Add Style/Color</button>
+          <button type="button" className="admin-add-variant" onClick={addColor}>+ Add Style/Add-on</button>
         </div>
 
         <div className="admin-form-actions">
