@@ -1,14 +1,26 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import "./ImageUpload.css";
 
-// Converts a selected file into a base64 data URL so it can be saved
-// directly into Firestore alongside the product/content data — no
-// separate file server needed, no typing a path. The client just
-// clicks, picks a photo from their phone/computer, and it's done.
-function fileToBase64(file) {
+// Resizes and compresses the image in the browser before it's converted
+// to base64 and saved — keeps product documents well under Firestore's
+// 1MB-per-document limit even with several photos on one item.
+function compressImage(file, maxWidth = 1000, quality = 0.75) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -16,33 +28,38 @@ function fileToBase64(file) {
 
 export default function ImageUpload({ value, onChange, label = "Upload image" }) {
   const inputRef = useRef(null);
+  const [processing, setProcessing] = useState(false);
 
   async function handleFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1024 * 1024 * 2) {
-      alert("Please choose an image smaller than 2MB for best performance.");
-      return;
+    setProcessing(true);
+    try {
+      const compressed = await compressImage(file);
+      onChange(compressed);
+    } catch (err) {
+      alert("Couldn't process that image — please try a different photo.");
+      console.error(err);
     }
-
-    const base64 = await fileToBase64(file);
-    onChange(base64);
+    setProcessing(false);
   }
 
   return (
     <div className="image-upload">
       <div
         className="image-upload-preview"
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !processing && inputRef.current?.click()}
       >
         {value ? (
           <img src={value} alt="Preview" />
         ) : (
-          <span className="image-upload-placeholder">{label}</span>
+          <span className="image-upload-placeholder">
+            {processing ? "Processing..." : label}
+          </span>
         )}
         <div className="image-upload-overlay">
-          {value ? "Change photo" : "Click to choose photo"}
+          {processing ? "Please wait..." : value ? "Change photo" : "Click to choose photo"}
         </div>
       </div>
       <input
