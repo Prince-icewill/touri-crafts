@@ -47,10 +47,15 @@ export const SEED_PRODUCTS = [
     name: "Reshe Board",
     category: "boards",
     price: 35000,
-    priceMax: 45000,
     images: ["/images/products/placeholder-board.jpg"],
     description: "Round-cut and finished with a hand-carved rim.",
     soldOut: false,
+    sizes: [
+      { label: "Small", price: 35000 },
+      { label: "Big", price: 45000 },
+    ],
+    colors: ["Tribal", "Natural", "All Charred"],
+    addOns: [{ label: "Engraving", price: 10000 }],
   },
   {
     id: "floor-lamp-01",

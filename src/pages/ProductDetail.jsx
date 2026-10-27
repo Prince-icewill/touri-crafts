@@ -17,12 +17,12 @@ export default function ProductDetail() {
 
   const hasSizes = Array.isArray(product?.sizes) && product.sizes.length > 0;
   const hasColors = Array.isArray(product?.colors) && product.colors.length > 0;
-  // Handles both old plain-string style entries and the new {label, extraPrice} shape
-  const normalizedColors = hasColors
-    ? product.colors.map((c) => (typeof c === "string" ? { label: c, extraPrice: 0 } : c))
-    : [];
+  const hasAddOns = Array.isArray(product?.addOns) && product.addOns.length > 0;
+
   const [selectedSize, setSelectedSize] = useState(hasSizes ? product.sizes[0] : null);
-  const [selectedColor, setSelectedColor] = useState(hasColors ? normalizedColors[0] : null);
+  const [selectedColor, setSelectedColor] = useState(hasColors ? product.colors[0] : null);
+  // Add-ons are independent, multiple can be picked — stored as a set of labels
+  const [selectedAddOns, setSelectedAddOns] = useState([]);
 
   if (!product) {
     return (
@@ -34,24 +34,36 @@ export default function ProductDetail() {
   }
 
   const basePrice = hasSizes ? selectedSize.price : product.price;
-  const extraPrice = hasColors && selectedColor?.extraPrice ? selectedColor.extraPrice : 0;
-  const displayPrice = basePrice + extraPrice;
+  const addOnsTotal = hasAddOns
+    ? product.addOns
+        .filter((a) => selectedAddOns.includes(a.label))
+        .reduce((sum, a) => sum + a.price, 0)
+    : 0;
+  const displayPrice = basePrice + addOnsTotal;
   const images = product.images && product.images.length > 0 ? product.images : [];
+
+  function toggleAddOn(label) {
+    setSelectedAddOns((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
+  }
 
   function handleAddToCart() {
     const variantParts = [];
     if (hasSizes) variantParts.push(selectedSize.label);
-    if (hasColors) variantParts.push(selectedColor.label);
+    if (hasColors) variantParts.push(selectedColor);
+    if (selectedAddOns.length > 0) variantParts.push(...selectedAddOns);
     const variantLabel = variantParts.length > 0 ? ` (${variantParts.join(", ")})` : "";
 
     addItem({
-      id: product.id + (variantParts.length > 0 ? "-" + variantParts.join("-").toLowerCase() : ""),
+      id: product.id + (variantParts.length > 0 ? "-" + variantParts.join("-").toLowerCase().replace(/\s+/g, "") : ""),
       baseId: product.id,
       name: product.name + variantLabel,
       price: displayPrice,
       images: product.images,
       size: hasSizes ? selectedSize.label : null,
-      color: hasColors ? selectedColor.label : null,
+      color: hasColors ? selectedColor : null,
+      addOns: selectedAddOns,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -99,8 +111,8 @@ export default function ProductDetail() {
             <h1>{product.name}</h1>
             <p className="product-detail-price">
               ₦{displayPrice.toLocaleString()}
-              {extraPrice > 0 && (
-                <span className="product-price-breakdown"> (incl. {selectedColor.label} +₦{extraPrice.toLocaleString()})</span>
+              {addOnsTotal > 0 && (
+                <span className="product-price-breakdown"> (incl. +₦{addOnsTotal.toLocaleString()} add-ons)</span>
               )}
             </p>
             <p className="product-detail-desc">{product.description}</p>
@@ -126,13 +138,30 @@ export default function ProductDetail() {
               <div className="product-option-group">
                 <span className="product-option-label">Style</span>
                 <div className="product-option-buttons">
-                  {normalizedColors.map((c) => (
+                  {product.colors.map((c) => (
                     <button
-                      key={c.label}
-                      className={`product-option-btn ${selectedColor?.label === c.label ? "product-option-active" : ""}`}
+                      key={c}
+                      className={`product-option-btn ${selectedColor === c ? "product-option-active" : ""}`}
                       onClick={() => setSelectedColor(c)}
                     >
-                      {c.label}{c.extraPrice > 0 ? ` (+₦${c.extraPrice.toLocaleString()})` : ""}
+                      {c}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {hasAddOns && (
+              <div className="product-option-group">
+                <span className="product-option-label">Add-ons</span>
+                <div className="product-option-buttons">
+                  {product.addOns.map((a) => (
+                    <button
+                      key={a.label}
+                      className={`product-option-btn ${selectedAddOns.includes(a.label) ? "product-option-active" : ""}`}
+                      onClick={() => toggleAddOn(a.label)}
+                    >
+                      {selectedAddOns.includes(a.label) ? "✓ " : "+ "}{a.label} (+₦{a.price.toLocaleString()})
                     </button>
                   ))}
                 </div>

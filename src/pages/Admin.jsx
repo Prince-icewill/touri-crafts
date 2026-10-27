@@ -93,6 +93,7 @@ function emptyForm() {
     images: [],
     sizes: [],
     colors: [],
+    addOns: [],
   };
 }
 
@@ -114,7 +115,9 @@ function ProductsTab() {
       description: product.description,
       images: product.images || [],
       sizes: product.sizes || [],
-      colors: (product.colors || []).map((c) => (typeof c === "string" ? { label: c, extraPrice: "" } : c)),
+      // Styles are now plain labels only (e.g. Tribal, Natural) — no price
+      colors: (product.colors || []).map((c) => (typeof c === "string" ? c : c.label)),
+      addOns: product.addOns || [],
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -138,17 +141,31 @@ function ProductsTab() {
   }
 
   function addColor() {
-    setForm((f) => ({ ...f, colors: [...f.colors, { label: "", extraPrice: "" }] }));
+    setForm((f) => ({ ...f, colors: [...f.colors, ""] }));
   }
-  function updateColor(index, field, value) {
+  function updateColor(index, value) {
     setForm((f) => {
       const colors = [...f.colors];
-      colors[index] = { ...colors[index], [field]: value };
+      colors[index] = value;
       return { ...f, colors };
     });
   }
   function removeColor(index) {
     setForm((f) => ({ ...f, colors: f.colors.filter((_, i) => i !== index) }));
+  }
+
+  function addAddOn() {
+    setForm((f) => ({ ...f, addOns: [...f.addOns, { label: "", price: "" }] }));
+  }
+  function updateAddOn(index, field, value) {
+    setForm((f) => {
+      const addOns = [...f.addOns];
+      addOns[index] = { ...addOns[index], [field]: value };
+      return { ...f, addOns };
+    });
+  }
+  function removeAddOn(index) {
+    setForm((f) => ({ ...f, addOns: f.addOns.filter((_, i) => i !== index) }));
   }
 
   function updateImageAt(index, base64) {
@@ -177,12 +194,13 @@ function ProductsTab() {
       return;
     }
 
-    const cleanSizes = form.sizes
+      const cleanSizes = form.sizes
       .filter((s) => s.label && s.price)
       .map((s) => ({ label: s.label, price: Number(s.price) }));
-    const cleanColors = form.colors
-      .filter((c) => c.label && c.label.trim())
-      .map((c) => ({ label: c.label.trim(), extraPrice: Number(c.extraPrice || 0) }));
+    const cleanColors = form.colors.filter((c) => c.trim());
+    const cleanAddOns = form.addOns
+      .filter((a) => a.label && a.price)
+      .map((a) => ({ label: a.label.trim(), price: Number(a.price) }));
 
     setSaving(true);
     try {
@@ -195,6 +213,7 @@ function ProductsTab() {
           images: cleanImages,
           sizes: cleanSizes,
           colors: cleanColors,
+          addOns: cleanAddOns,
         });
       } else {
         const id = form.name.toLowerCase().trim().replace(/\s+/g, "-") + "-" + Date.now();
@@ -207,6 +226,7 @@ function ProductsTab() {
           images: cleanImages,
           sizes: cleanSizes,
           colors: cleanColors,
+          addOns: cleanAddOns,
           soldOut: false,
         });
       }
@@ -256,16 +276,27 @@ function ProductsTab() {
           <button type="button" className="admin-add-variant" onClick={addSize}>+ Add Size</button>
         </div>
 
-        <div className="admin-variant-section">
-          <div className="admin-images-label">Styles / Add-ons (optional — e.g. Tribal ₦0, Engraving ₦10,000)</div>
+            <div className="admin-variant-section">
+          <div className="admin-images-label">Styles (optional — e.g. Tribal, Natural, All Charred — customer picks one)</div>
           {form.colors.map((c, i) => (
             <div key={i} className="admin-variant-row">
-              <input placeholder="e.g. Tribal or Engraving" value={c.label} onChange={(e) => updateColor(i, "label", e.target.value)} />
-              <input type="number" placeholder="Extra charge (₦) — 0 if none" value={c.extraPrice} onChange={(e) => updateColor(i, "extraPrice", e.target.value)} />
+              <input placeholder="e.g. Tribal" value={c} onChange={(e) => updateColor(i, e.target.value)} />
               <button type="button" className="admin-remove-image" onClick={() => removeColor(i)}>Remove</button>
             </div>
           ))}
-          <button type="button" className="admin-add-variant" onClick={addColor}>+ Add Style/Add-on</button>
+          <button type="button" className="admin-add-variant" onClick={addColor}>+ Add Style</button>
+        </div>
+
+        <div className="admin-variant-section">
+          <div className="admin-images-label">Add-ons (optional — e.g. Engraving ₦10,000 — customer can combine with any style)</div>
+          {form.addOns.map((a, i) => (
+            <div key={i} className="admin-variant-row">
+              <input placeholder="e.g. Engraving" value={a.label} onChange={(e) => updateAddOn(i, "label", e.target.value)} />
+              <input type="number" placeholder="Price (₦)" value={a.price} onChange={(e) => updateAddOn(i, "price", e.target.value)} />
+              <button type="button" className="admin-remove-image" onClick={() => removeAddOn(i)}>Remove</button>
+            </div>
+          ))}
+          <button type="button" className="admin-add-variant" onClick={addAddOn}>+ Add Add-on</button>
         </div>
 
         <div className="admin-form-actions">
